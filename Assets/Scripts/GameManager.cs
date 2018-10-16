@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using ZenvaVR;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour {
 
     public PlayerController player;
-    public GameObject enemyPrefab;
+    //public GameObject enemyPrefab;
+    public ObjectPool enemyPool;
     public GameObject fuelPrefab;
     public GameObject gameCamera;
 
@@ -20,6 +23,8 @@ public class GameManager : MonoBehaviour {
 
     private float enemySpawnTimer;
     private float fuelSpawnTimer;
+    private float restartTimer = 3f;
+
     private int score = 0;
     private float fuel = 100f;
     
@@ -41,7 +46,8 @@ public class GameManager : MonoBehaviour {
             if (enemySpawnTimer <= 0) {
                 enemySpawnTimer = enemySpawnInterval;
 
-                GameObject enemyInstance = Instantiate(enemyPrefab, transform);
+                //GameObject enemyInstance = Instantiate(enemyPrefab, transform);
+                GameObject enemyInstance = enemyPool.GetObj();
                 enemyInstance.transform.position = new Vector2(
                     Random.Range(-horizontalLimit, horizontalLimit),
                     player.transform.position.y + Screen.height / 100f
@@ -67,11 +73,18 @@ public class GameManager : MonoBehaviour {
             if (fuel <= 0) {
                 Destroy(player.gameObject);
             }
+        } else {
+            restartTimer -= Time.deltaTime;
+
+            if (restartTimer <= 0f) {
+                SceneManager.LoadScene("Game");
+            }
         }
 
         foreach (EnemyController enemy in GetComponentsInChildren<EnemyController>()) {
             if (gameCamera.transform.position.y - enemy.transform.position.y > Screen.height / 100f) {
-                Destroy(enemy.gameObject);
+                // Destroy(enemy.gameObject);
+                enemy.gameObject.SetActive(false);
             }
         }
     }
